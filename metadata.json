@@ -1,0 +1,6 @@
+{
+  "name": "Le Magellan",
+  "description": "A premium French and Oriental fusion restaurant in Osu, Accra, Ghana, offering a curated dining menu, online table booking, and convenient local payments.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
