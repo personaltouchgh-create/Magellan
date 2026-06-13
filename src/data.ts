@@ -8,7 +8,7 @@ export const DISHES: Dish[] = [
     description: 'Luxurious seared French duck foie gras served with high-end honey-glazed sweet plantain tatin, a wild star anise port reduction, and toasted crushed Ghanaian raw cashews.',
     price: 280.00,
     category: 'starters',
-    image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a40?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=600',
     tags: ['Signature'],
     allergens: ['Dairy', 'Nuts'],
     ingredients: ['French Duck Foie Gras', 'Sweet Plantain', 'Ghanaian Cashews', 'Star Anise', 'Port Wine'],

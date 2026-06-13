@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Sparkles, SlidersHorizontal, Eye, Plus, Check, Star, Clock, Flame, ShieldAlert, Wine } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { DISHES } from '../data';
 import { Dish, Category } from '../types';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -143,6 +143,45 @@ const DISH_TRANSLATIONS: Record<string, {
   }
 };
 
+const WINE_PAIRINGS: Record<string, { name: string; vintage: string; descEn: string; descFr: string }> = {
+  m1: {
+    name: 'Châteauneuf-du-Pape (Domaine du Vieux Télégraphe)',
+    vintage: '2019',
+    descEn: 'A majestic Rhone red with intense dark berry aromas, smooth tannins, and a warm hint of white pepper and lavender. Complements the rich marbling of Wagyu perfectly.',
+    descFr: 'Un rouge majestueux du Rhône aux arômes intenses de petits fruits noirs, de tanins veloutés et d’un soupçon de poivre blanc et de lavande. Sublime parfaitement le persillage du Wagyu.'
+  },
+  m2: {
+    name: 'Gevrey-Chambertin (Domaine Claude Dugat)',
+    vintage: '2018',
+    descEn: 'An exquisite Burgundy Pinot Noir showing cherries, red currants, and earthy forest floor. Its elegant acidity cuts through the sweet, fatty richness of Szechuan duck.',
+    descFr: 'Un Pinot Noir de Bourgogne exquis révélant des cerises griottes, de la groseille et un sous-bois terreux. Son acidité noble équilibre le fondant sucré-épicé du canard.'
+  },
+  m3: {
+    name: 'Vermentino di Sardegna (Argiolas "Is Argiolas")',
+    vintage: '2021',
+    descEn: 'A vibrant, crisp Italian white with mineral-driven stone fruits, sea-salinity, and fresh rosemary tones. Ideal with charred sea octopus and fresh green herbs.',
+    descFr: 'Un blanc sarde minéral, vif, aux notes de fruits à noyau blanc, de salinité marine et de romarin sauvage. Idéal avec la texture grillée du poulpe aux herbes.'
+  },
+  m4: {
+    name: 'Pouilly-Fuissé Chardonnay (Domaine J.A. Ferret)',
+    vintage: '2020',
+    descEn: 'An elegant Maconnais white boasting ripe lemon zest, roasted nuts, and vanilla oak nuances. Accentuates saffron fish broth and tender snapper skin.',
+    descFr: 'Un grand vin du Mâconnais offrant des notes de zeste de citron mûr, de noisettes dorées et de vanille boisée. Sublime le bouillon de safran et la finesse du vivaneau.'
+  },
+  m5: {
+    name: 'Louis Latour Bourgogne Pinot Noir',
+    vintage: '2021',
+    descEn: 'A balanced French red with cherry highlights and a delicate earthy mushroom undertone. Pairs beautifully with rich culinary black truffle paste.',
+    descFr: 'Un vin rouge de Bourgogne équilibré, aux notes de cerise rouge mûre et de sous-bois. S’accorde harmonieusement avec la pâte crémeuse aux truffes noires.'
+  },
+  m6: {
+    name: 'Champagne Brut Nature (Laherte Frères "Ultradition")',
+    vintage: 'NV (Non-Vintage)',
+    descEn: 'A highly crisp, bone-dry Champagne with fine bubbles, green apple crispness, and warm toasted brioche. The sharp effervescence balances rich coconut cream.',
+    descFr: 'Un champagne d’une grande pureté, extra-brut, aux fines bulles pressées, pomme verte et brioche chaude. Le pétillant vif équilibre l’onctuosité du lait de coco.'
+  }
+};
+
 interface MenuSectionProps {
   onAddToCart: (dish: Dish, quantity: number, instructions?: string) => void;
 }
@@ -157,6 +196,7 @@ export default function MenuSection({ onAddToCart }: MenuSectionProps) {
   const [quantity, setQuantity] = useState(1);
   const [customInstructions, setCustomInstructions] = useState('');
   const [addedItemMessageId, setAddedItemMessageId] = useState<string | null>(null);
+  const [expandedWineDishIds, setExpandedWineDishIds] = useState<Record<string, boolean>>({});
 
   // Translate dish utility
   const getDishField = <K extends 'name' | 'description' | 'ingredients' | 'pairedWine' | 'allergens' | 'tags'>(
@@ -522,18 +562,74 @@ export default function MenuSection({ onAddToCart }: MenuSectionProps) {
                   </div>
 
                   {/* Operational Details (Prep time & wine pairs) */}
-                  <div className="flex items-center gap-4 text-white/30 text-[10px] font-mono uppercase tracking-wider mb-6 border-t border-white/5 pt-4">
+                  <div className="flex items-center justify-between gap-4 text-white/30 text-[10px] font-mono uppercase tracking-wider mb-5 border-t border-white/5 pt-4">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-white/30" />
                       {dish.prepMinutes} {language === 'fr' ? 'mins' : 'mins'}
                     </span>
-                    {dish.pairedWine && (
-                      <span className="flex items-center gap-1 flex-1 truncate">
+                    {dish.category === 'mains' && WINE_PAIRINGS[dish.id] ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedWineDishIds(prev => ({
+                            ...prev,
+                            [dish.id]: !prev[dish.id]
+                          }));
+                        }}
+                        className={`flex items-center gap-1.5 cursor-pointer transition-all duration-300 px-2.5 py-1 rounded-none border text-[9px] hover:border-[#c5a47e] hover:bg-[#c5a47e]/10 select-none ${
+                          expandedWineDishIds[dish.id]
+                            ? 'text-black bg-[#c5a47e] border-[#c5a47e] font-semibold'
+                            : 'text-[#c5a47e] border-[#c5a47e]/20 bg-transparent'
+                        }`}
+                        title={language === 'fr' ? "Voir l'accord vin d'exception" : "View premium wine pairing suggestion"}
+                      >
+                        <Wine className={`h-3 w-3 transition-transform duration-300 ${expandedWineDishIds[dish.id] ? 'rotate-12 scale-110' : ''}`} />
+                        <span>{expandedWineDishIds[dish.id] ? (language === 'fr' ? 'Masquer Vin' : 'Hide Wine') : (language === 'fr' ? 'Suggérer Vin' : 'Suggest Wine')}</span>
+                      </button>
+                    ) : dish.pairedWine ? (
+                      <span className="flex items-center gap-1 flex-1 truncate justify-end">
                         <Wine className="h-3 w-3 text-[#c5a47e]" />
-                        {language === 'fr' ? 'Suggestion d’accord vin' : 'Wine pairing suggestion'}
+                        {language === 'fr' ? 'Accord suggéré' : 'Wine pairing suggestion'}
                       </span>
-                    )}
+                    ) : null}
                   </div>
+
+                  {/* Wine Pairing Suggestion Drawer */}
+                  <AnimatePresence>
+                    {dish.category === 'mains' && expandedWineDishIds[dish.id] && WINE_PAIRINGS[dish.id] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0, scaleY: 0.95 }}
+                        animate={{ height: 'auto', opacity: 1, scaleY: 1 }}
+                        exit={{ height: 0, opacity: 0, scaleY: 0.95 }}
+                        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden mb-5 bg-[#c5a47e]/5 border border-[#c5a47e]/20 p-4 relative"
+                      >
+                        <div className="absolute top-1 right-2 font-serif text-[42px] font-bold text-[#c5a47e]/5 pointer-events-none select-none">
+                          {WINE_PAIRINGS[dish.id].vintage}
+                        </div>
+                        <div className="flex items-start gap-3">
+                          <Wine className="h-4 w-4 text-[#c5a47e] shrink-0 mt-0.5" />
+                          <div className="z-10">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-sans text-[8px] font-bold text-[#c5a47e] uppercase tracking-[0.2em] bg-[#c5a47e]/20 px-1.5 py-0.5 rounded-none font-semibold">
+                                {language === 'fr' ? 'Accord Maison d’Exception' : 'Best House Wine Pairing'}
+                              </span>
+                              <span className="font-mono text-[9px] text-[#c5a47e]/80 font-bold ml-auto">
+                                Vintage {WINE_PAIRINGS[dish.id].vintage}
+                              </span>
+                            </div>
+                            <h4 className="font-serif text-[13px] text-white font-medium mb-1.5 leading-snug">
+                              {WINE_PAIRINGS[dish.id].name}
+                            </h4>
+                            <p className="font-sans text-[11px] text-white/70 leading-relaxed font-light">
+                              {language === 'fr' ? WINE_PAIRINGS[dish.id].descFr : WINE_PAIRINGS[dish.id].descEn}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Interactive Button Row */}
                   <div className="flex gap-2">
@@ -657,20 +753,32 @@ export default function MenuSection({ onAddToCart }: MenuSectionProps) {
                     </div>
                   </div>
 
-                  {/* Sommelier pairings */}
-                  {selectedDish.pairedWine && (
-                    <div className="p-3 bg-[#c5a47e]/5 border border-[#c5a47e]/15 rounded-none mb-6 flex items-start gap-3">
-                      <Wine className="h-4 w-4 text-[#c5a47e] shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-sans text-[9px] uppercase tracking-[0.2em] text-[#c5a47e] block font-semibold">
-                          {language === 'fr' ? 'Recommandation Sommelier' : 'Sommelier Recommendation'}
-                        </span>
-                        <p className="text-white/80 text-xs italic font-serif leading-snug mt-1">
-                          {getDishField(selectedDish, 'pairedWine') || selectedDish.pairedWine}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                   {/* Sommelier pairings */}
+                   {selectedDish.pairedWine && (
+                     <div className="p-3.5 bg-[#c5a47e]/5 border border-[#c5a47e]/15 rounded-none mb-6 flex items-start gap-3">
+                       <Wine className="h-4.5 w-4.5 text-[#c5a47e] shrink-0 mt-0.5" />
+                       <div className="w-full">
+                         <div className="flex items-center justify-between gap-2">
+                           <span className="font-sans text-[9px] uppercase tracking-[0.2em] text-[#c5a47e] block font-semibold">
+                             {language === 'fr' ? 'Recommandation Sommelier' : 'Sommelier Recommendation'}
+                           </span>
+                           {WINE_PAIRINGS[selectedDish.id] && (
+                             <span className="font-mono text-[9px] text-[#c5a47e]/80 font-bold">
+                               {WINE_PAIRINGS[selectedDish.id].vintage}
+                             </span>
+                           )}
+                         </div>
+                         <p className="text-white text-[13px] font-serif leading-snug mt-1 font-medium">
+                           {WINE_PAIRINGS[selectedDish.id] ? WINE_PAIRINGS[selectedDish.id].name : (getDishField(selectedDish, 'pairedWine') || selectedDish.pairedWine)}
+                         </p>
+                         {WINE_PAIRINGS[selectedDish.id] && (
+                           <p className="text-white/60 text-[11px] font-sans leading-relaxed mt-1.5 font-light">
+                             {language === 'fr' ? WINE_PAIRINGS[selectedDish.id].descFr : WINE_PAIRINGS[selectedDish.id].descEn}
+                           </p>
+                         )}
+                       </div>
+                     </div>
+                   )}
 
                   {/* Modifications Request */}
                   <div className="mb-6">

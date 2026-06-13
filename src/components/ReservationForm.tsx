@@ -1,8 +1,38 @@
 import React, { useState } from 'react';
-import { Calendar, Users, Clock, Info, Check, Table, Trophy, Sparkles, AlertCircle, Search, Trash2, ClipboardList } from 'lucide-react';
+import { Calendar, Users, Clock, Info, Check, Table, Trophy, Sparkles, AlertCircle, Search, Trash2, ClipboardList, X, HelpCircle, MapPin } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { RESERVATION_SLOTS } from '../data';
 import { TableType, Reservation } from '../types';
 import { useTranslation } from '../contexts/LanguageContext';
+
+export interface MappedTable {
+  id: string;
+  name: string;
+  capacity: number;
+  type: TableType;
+  area: 'main' | 'terrace';
+  perkEn: string;
+  perkFr: string;
+  isReserved?: boolean;
+}
+
+export const INTERACTIVE_TABLES: MappedTable[] = [
+  // Main Hall (Inside)
+  { id: 'T1', name: 'Table 1', capacity: 2, type: 'main-hall', area: 'main', perkEn: 'Gilded booth next to the classical live jazz grand piano', perkFr: 'Banquette dorée près du piano à queue de jazz acoustique' },
+  { id: 'T2', name: 'Table 2', capacity: 4, type: 'main-hall', area: 'main', perkEn: 'Cozy fireplace table with vintage wine cellar views', perkFr: 'Cheminée chaleureuse face aux caves de grands crus' },
+  { id: 'T3', name: 'Table 3', capacity: 6, type: 'main-hall', area: 'main', perkEn: 'Stately center table under the cathedral stone arch', perkFr: 'Table d’honneur centrale sous la coupole de pierre de taille' },
+  { id: 'T4', name: 'Table 4', capacity: 4, type: 'main-hall', area: 'main', perkEn: 'Royal alcove overlooking the complete glowing dining hall', perkFr: 'Alcovée royale surplombant toute la salle lumineuse', isReserved: true },
+  { id: 'T5', name: 'Counter 5', capacity: 2, type: 'chefs-counter', area: 'main', perkEn: 'Watch cooks grill dry-aged lobster on fire logs', perkFr: 'Face à la braise où crépitent nos homards grillés' },
+  { id: 'T6', name: 'Counter 6', capacity: 2, type: 'chefs-counter', area: 'main', perkEn: 'Front row seats to view Chef Laurent’s artistic plating', perkFr: 'Aux premières loges face au piano de dressage du Chef Laurent' },
+  
+  // Terrace (Outdoor Garden)
+  { id: 'T7', name: 'Table 7', capacity: 4, type: 'garden-patio', area: 'terrace', perkEn: 'Under the heated glowing botanical palm pergolas', perkFr: 'Sous la pergola chauffée aux palmes de lierre lumineuses' },
+  { id: 'T8', name: 'Table 8', capacity: 4, type: 'garden-patio', area: 'terrace', perkEn: 'Gentle water ripples beside our organic rock fountain', perkFr: 'Près des cascades de la fontaine de pierre sculptée', isReserved: true },
+  { id: 'T9', name: 'Table 9', capacity: 8, type: 'garden-patio', area: 'terrace', perkEn: 'Grand exotic island open-air pavilion for large parties', perkFr: 'Pavillon impérial al fresco parfait pour les groupes' },
+  { id: 'T10', name: 'Booth 10', capacity: 2, type: 'romantic-booth', area: 'terrace', perkEn: 'Whispering candles and silk pillows in velvet garden niche', perkFr: 'Coussinages profonds d’angle aux chandelles discrètes' },
+  { id: 'T11', name: 'Booth 11', capacity: 2, type: 'romantic-booth', area: 'terrace', perkEn: 'Hidden jasmine rose pathway booth with complete privacy', perkFr: 'Niche dérobée au milieu des jasmins, intimité absolue', isReserved: true },
+  { id: 'T12', name: 'Booth 12', capacity: 2, type: 'romantic-booth', area: 'terrace', perkEn: 'Cozy lantern-lit garden pocket beneath warm patio heaters', perkFr: 'Bulle de confort sous les flambeaux et chauffages radiants' }
+];
 
 interface ReservationFormProps {
   reservations: Reservation[];
@@ -36,6 +66,9 @@ export default function ReservationForm({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  
+  const [isMapOpen, setIsMapOpen] = useState(false);
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null);
   
   const [confirmedReservation, setConfirmedReservation] = useState<Reservation | null>(null);
   const [errors, setErrors] = useState<string | null>(null);
@@ -281,9 +314,19 @@ export default function ReservationForm({
                       
                       {/* Placement */}
                       <div className="mb-4">
-                        <label className="block font-sans text-[10px] uppercase font-bold tracking-[0.15em] text-white/40 mb-2">
-                          Preferred Seating Zone
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="block font-sans text-[10px] uppercase font-bold tracking-[0.15em] text-white/40">
+                            {language === 'fr' ? "Zone de Placement Préférée" : "Preferred Seating Zone"}
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setIsMapOpen(true)}
+                            className="text-[#c5a47e] hover:text-[#b08d65] font-sans text-[10px] uppercase tracking-wider font-semibold underline flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Table className="h-3 w-3" />
+                            {language === 'fr' ? "Plan des Tables" : "View Table Layout"}
+                          </button>
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {TABLE_DESCRIPTIONS.map((tab) => {
                             const isSel = tableType === tab.type;
@@ -835,6 +878,251 @@ export default function ReservationForm({
         )}
 
       </div>
+
+      {/* Visual Table Seating Layout Modal Map */}
+      <AnimatePresence>
+        {isMapOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full max-w-5xl bg-[#111111] border border-white/10 rounded-none shadow-2xl p-6 md:p-8 text-left my-8"
+            >
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsMapOpen(false)}
+                className="absolute top-4 right-4 text-white/50 hover:text-white p-1 hover:bg-white/5 rounded-none transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Title Header */}
+              <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/5">
+                <div>
+                  <div className="flex items-center gap-2 text-[#c5a47e] text-xs font-semibold uppercase tracking-wider mb-1">
+                    <MapPin className="h-4 w-4" />
+                    {language === 'fr' ? "Plan Interactif des Salons" : "Interactive Seating Blueprint"}
+                  </div>
+                  <h3 className="font-serif text-2xl sm:text-3xl text-white font-light tracking-wide">
+                    {language === 'fr' ? "Carte Culinaire de l'Espace" : "Le Magellan Seating Chart"}
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs font-sans text-white/50">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-[#c5a47e] inline-block shadow-[0_0_8px_#c5a47e]" />
+                    <span>{language === 'fr' ? "Sélectionné" : "Selected"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-white/20 border border-white/40 inline-block" />
+                    <span>{language === 'fr' ? "Disponible" : "Available"}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 w-max">
+                    <span className="w-3 h-3 rounded-full bg-red-950/40 border border-red-500/20 inline-block" />
+                    <span className="text-red-400">{language === 'fr' ? "Complet" : "Reserved"}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map Instructions */}
+              <p className="text-xs text-white/60 mb-6 leading-relaxed font-sans font-light">
+                {language === 'fr'
+                  ? "Explorez la disposition authentique de notre établissement à Osu. Cliquez sur une table disponible pour mettre à jour instantanément vos préférences d'assise."
+                  : "Explore the authentic arrangement of our Osu establishment. Click on any available table to instantly select and register your dining zone preference."}
+              </p>
+
+              {/* Floor Plan Layout Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+                
+                {/* 1. MAIN DINING HALL (L'Intérieur) */}
+                <div className="bg-[#0a0a0a] border border-white/5 p-5 relative overflow-hidden">
+                  <div className="absolute top-2 right-2 text-[9px] font-mono tracking-widest text-[#c5a47e]/40 uppercase">
+                    INDOOR SALON
+                  </div>
+                  <h4 className="font-serif text-lg text-white mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
+                    <span className="text-[#c5a47e] font-serif">A.</span>
+                    {language === 'fr' ? "Le Salon Principal (Main Hall)" : "The Main Dining Hall"}
+                  </h4>
+                  <p className="text-[10px] text-white/40 mb-6 italic">
+                    {language === 'fr' ? "Ambiance feutrée, chaleureuse, éclairage tamisé de bougies et piano à queue acoustique." : "Opulent, lively candlelit salon with live grand piano performances."}
+                  </p>
+
+                  {/* Inside Seating Map Grid */}
+                  <div className="relative h-[250px] bg-white/[0.01] border border-white/5 rounded-none flex items-center justify-center p-4">
+                    {/* Sketchy architectural elements to look super real */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-16 bg-[#c5a47e]/10 flex items-center justify-center text-[8px] tracking-widest font-mono text-white/20 uppercase rotate-90">
+                      ENTRANCE
+                    </div>
+                    <div className="absolute right-4 top-4 px-2.5 py-1 bg-white/2 border border-white/5 text-[8px] font-mono tracking-wider text-[#c5a47e]/80 uppercase">
+                      🎹 JAZZ PIANO LOUNGE
+                    </div>
+                    <div className="absolute bottom-4 left-4 right-4 h-6 bg-white/2 border border-white/5 flex items-center justify-center text-[8px] uppercase tracking-[0.2em] font-mono text-white/30">
+                      ★ CHEF'S OPEN FINISHING BAR ★
+                    </div>
+
+                    {/* Interactive table dots positioned cleanly */}
+                    <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-5 p-8 pb-14">
+                      {INTERACTIVE_TABLES.filter(t => t.area === 'main').map((tab) => {
+                        const isChosen = tableType === tab.type;
+                        const isThisTabSelected = selectedTableId === tab.id;
+                        const isReserved = tab.isReserved;
+
+                        return (
+                          <button
+                            type="button"
+                            key={tab.id}
+                            disabled={isReserved}
+                            onClick={() => {
+                              setTableType(tab.type);
+                              setSelectedTableId(tab.id);
+                            }}
+                            className={`relative transition-all duration-300 flex flex-col items-center justify-center rounded-none cursor-pointer ${
+                              tab.capacity >= 6 ? 'w-16 h-16' : tab.capacity >= 4 ? 'w-14 h-14' : 'w-11 h-11'
+                            } ${
+                              isReserved
+                                ? 'bg-red-500/5 border border-red-500/20 text-red-500/30'
+                                : isChosen || isThisTabSelected
+                                ? 'bg-[#c5a47e]/10 border-2 border-[#c5a47e] text-[#c5a47e] shadow-[0_0_15px_rgba(197,164,126,0.3)] scale-105'
+                                : 'bg-white/5 border border-white/10 hover:border-white/40 text-white/70'
+                            }`}
+                          >
+                            <span className="block text-[10px] font-bold font-serif whitespace-nowrap">{tab.name}</span>
+                            <span className="block text-[8px] opacity-75 font-sans mt-0.5">{tab.capacity}p</span>
+                            
+                            {/* Inner graphical elements representing seats */}
+                            <div className="absolute inset-0 border border-dashed border-white/5 pointer-events-none scale-105" />
+
+                            {isReserved && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[8px] text-red-400 font-bold uppercase tracking-widest leading-none">
+                                Full
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. THE TERRACE GARDEN (La Terrasse) */}
+                <div className="bg-[#0a0a0a] border border-white/5 p-5 relative overflow-hidden">
+                  <div className="absolute top-2 right-2 text-[9px] font-mono tracking-widest text-[#c5a47e]/40 uppercase">
+                    AL FRESCO GARDEN
+                  </div>
+                  <h4 className="font-serif text-lg text-white mb-4 flex items-center gap-2 pb-2 border-b border-white/5">
+                    <span className="text-[#c5a47e] font-serif">B.</span>
+                    {language === 'fr' ? "La Terrasse & Jardin Étoilé" : "The Tropical Terrace & Garden"}
+                  </h4>
+                  <p className="text-[10px] text-white/40 mb-6 italic">
+                    {language === 'fr' ? "Baigné d'air marin d'Accra, niché au cœur de treillages fleuris et de lanternes chaudes." : "Breezy al fresco seating amidst heated pergolas, palms, & jasmine arches."}
+                  </p>
+
+                  {/* Terrace Seating Map Grid */}
+                  <div className="relative h-[250px] bg-emerald-950/[0.01] border border-white/5 rounded-none flex items-center justify-center p-4">
+                    {/* Sketchy architectural elements to look super real */}
+                    <div className="absolute top-4 left-4 px-2 py-0.5 bg-[#c5a47e]/5 border border-[#c5a47e]/10 text-[7px] font-mono tracking-wider text-[#c5a47e] uppercase">
+                      ⛲ ROCK WATERFALL POOL
+                    </div>
+                    <div className="absolute bottom-4 right-4 px-2 py-0.5 bg-emerald-500/5 border border-emerald-500/10 text-[7px] font-mono tracking-wider text-emerald-400 uppercase">
+                      🌴 PALM SHADOW GROVE
+                    </div>
+                    <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-1 items-start text-white/20 whitespace-nowrap">
+                      <div className="h-6 w-1 border-l-2 border-white/10" />
+                      <span className="text-[7px] tracking-widest uppercase font-mono">Terrace Deck Railing</span>
+                      <div className="h-6 w-1 border-l-2 border-white/10" />
+                    </div>
+
+                    {/* Interactive table dots positioned cleanly */}
+                    <div className="absolute inset-0 flex flex-wrap items-center justify-center content-center gap-5 p-8 pb-10 pl-14">
+                      {INTERACTIVE_TABLES.filter(t => t.area === 'terrace').map((tab) => {
+                        const isChosen = tableType === tab.type;
+                        const isThisTabSelected = selectedTableId === tab.id;
+                        const isReserved = tab.isReserved;
+
+                        return (
+                          <button
+                            type="button"
+                            key={tab.id}
+                            disabled={isReserved}
+                            onClick={() => {
+                              setTableType(tab.type);
+                              setSelectedTableId(tab.id);
+                            }}
+                            className={`relative transition-all duration-300 flex flex-col items-center justify-center rounded-none cursor-pointer ${
+                              tab.capacity >= 8 ? 'w-18 h-18' : tab.capacity >= 4 ? 'w-14 h-14' : 'w-11 h-11'
+                            } ${
+                              isReserved
+                                ? 'bg-red-500/5 border border-red-500/20 text-red-500/30'
+                                : isChosen || isThisTabSelected
+                                ? 'bg-[#c5a47e]/10 border-2 border-[#c5a47e] text-[#c5a47e] shadow-[0_0_15px_rgba(197,164,126,0.3)] scale-105'
+                                : 'bg-white/5 border border-white/10 hover:border-white/40 text-white/70'
+                            }`}
+                          >
+                            <span className="block text-[10px] font-bold font-serif whitespace-nowrap">{tab.name}</span>
+                            <span className="block text-[8px] opacity-75 font-sans mt-0.5">{tab.capacity}p</span>
+                            
+                            {/* Inner graphical elements representing seats */}
+                            <div className="absolute inset-0 border border-dashed border-white/5 pointer-events-none scale-105" />
+
+                            {isReserved && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-[8px] text-red-400 font-bold uppercase tracking-widest leading-none">
+                                Full
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Dynamic Seating Zone Information Block */}
+              {(() => {
+                const currentSelection = INTERACTIVE_TABLES.find(t => t.id === selectedTableId) || INTERACTIVE_TABLES.find(t => t.type === tableType && !t.isReserved);
+                if (!currentSelection) return null;
+                
+                return (
+                  <div className="p-4 bg-white/3 border border-white/10 rounded-none mb-6 animate-in fade-in duration-200">
+                    <h5 className="font-sans text-[10px] uppercase tracking-[0.15em] font-semibold text-[#c5a47e] mb-1">
+                      {language === 'fr' ? "Emplacement Actuellement Sélectionné :" : "Currently Selected Placement :"}
+                    </h5>
+                    <div className="flex flex-col sm:flex-row items-baseline gap-2">
+                      <span className="font-serif text-lg font-medium text-white">{currentSelection.name} ({currentSelection.capacity} seats)</span>
+                      <span className="text-xs text-white/40 font-sans">•</span>
+                      <span className="text-xs text-[#c5a47e] font-sans font-light italic">
+                        {language === 'fr' ? currentSelection.perkFr : currentSelection.perkEn}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Confirm / Continue Button */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setIsMapOpen(false)}
+                  className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white font-sans text-xs uppercase tracking-wider transition cursor-pointer"
+                >
+                  {language === 'fr' ? "Fermer" : "Close Map"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMapOpen(false)}
+                  className="px-8 py-2.5 bg-[#c5a47e] hover:bg-[#b08d65] text-black font-sans text-xs font-bold uppercase tracking-wider transition cursor-pointer"
+                >
+                  {language === 'fr' ? "Confirmer la Sélection" : "Confirm Seating Choice"}
+                </button>
+              </div>
+
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
