@@ -265,7 +265,7 @@ export default function App() {
       />
 
       {/* Floating WhatsApp Instant Concierge for Ghana */}
-      <WhatsAppButton />
+      {!isCartOpen && <WhatsAppButton />}
     </div>
   );
 }

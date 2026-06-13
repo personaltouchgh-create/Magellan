@@ -44,7 +44,7 @@ const SPECIAL_DISHES: TranslatedSpecial[] = [
     description_fr: 'Vivaneau rouge de l\'Atlantique local, crevettes géantes et jeunes calmars délicatement pochés dans un riche double bouillon marseillais au safran et fenouil. Parfumé au gingembre frais de Shama, à l\'anis étoilé, à la citronnelle et à la coriandre, servi avec son pain au levain artisanal.',
     price: 550.00,
     category: 'mains',
-    image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&q=80&w=1200',
     tags_en: ['Michelin Special', 'Fusion', 'Seafood'],
     tags_fr: ['Spécial Michelin', 'Fusion', 'Fruits de Mer'],
     allergens_en: ['Fish', 'Crustaceans', 'Gluten'],
@@ -69,7 +69,7 @@ const SPECIAL_DISHES: TranslatedSpecial[] = [
     description_fr: 'Cuisse de canard de Barbarie française traditionnelle, mijotée dans sa propre graisse avec des herbes aromatiques locales pendant 12 heures, puis saisie au wok. Enrobée d\'un glaçage brillant de poivre de Sichuan concassé, de miel de forêt sauvage et de soja, servie sur une purée de patates douces.',
     price: 620.00,
     category: 'mains',
-    image: 'https://images.unsplash.com/photo-1514516345957-556ca7d90a29?auto=format&fit=crop&q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&q=80&w=1200',
     tags_en: ['Chef Signature', 'Slow-Cooked', 'Decadent'],
     tags_fr: ['Signature du Chef', 'Mijoté Lentement', 'Décadence'],
     allergens_en: ['Soy', 'Dairy'],
@@ -94,7 +94,7 @@ const SPECIAL_DISHES: TranslatedSpecial[] = [
     description_fr: 'Une crème diplomate soyeuse infusée de tiges de citronnelle fraîchement écrasées et de nectar de gingembre doux de notre jardin d\'Osu. Superposée avec de l\'ananas local caramélisé, du crumble de fèves de cacao ghanéennes torréfiées et surmontée d\'or 24 carats.',
     price: 180.00,
     category: 'desserts',
-    image: 'https://images.unsplash.com/photo-151183053-bf91a1d81141?auto=format&fit=crop&q=80&w=1200',
+    image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&q=80&w=1200',
     tags_en: ['Artisanal Dessert', 'Sweet Fusion'],
     tags_fr: ['Dessert Artisanal', 'Douce Fusion'],
     allergens_en: ['Dairy', 'Eggs', 'Gluten'],
@@ -281,6 +281,7 @@ export default function ChefSpecials({ onAddToCart }: ChefSpecialsProps) {
                       src={currentDish.image}
                       alt={currentDish.name}
                       loading="lazy"
+                      referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-center scale-100 hover:scale-105 transition-all duration-700 ease-out"
                     />
                   </picture>
